@@ -208,7 +208,8 @@ class MOOSCommClient( Thread ):
     def __HandShake( self ):
 
         #Send the wire protocol
-        c = ctypes.c_char_p( u"ELKS CAN'T DANCE 2/8/10" );
+        #c = ctypes.c_char_p( u"ELKS CAN'T DANCE 2/8/10" );
+        c = ctypes.c_char_p( self.protocol )
         v = ctypes.cast( c, ctypes.c_void_p )
       
         self.sock.SendMessage( v.value, 32);

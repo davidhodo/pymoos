@@ -1,16 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////
 //
-//   MOOS - Mission Oriented Operating Suite 
+//   pyMOOS - An interface to the Mission Oriented Operating Suite  - see
+//   http://www.robots.ox.ac.uk/~mobile/MOOS/wiki/pmwiki.php
 //  
-//   A suit of Applications and Libraries for Mobile Robotics Research 
-//   Copyright (C) 2001-2005 Massachusetts Institute of Technology and 
-//   Oxford University. 
-//    
-//   This software was written by Paul Newman at MIT 2001-2002 and Oxford 
-//   University 2003-2005. email: pnewman@robots.ox.ac.uk. 
-//      
-//   This file is part of a  MOOS Core Component. 
-//        
 //   This program is free software; you can redistribute it and/or 
 //   modify it under the terms of the GNU General Public License as 
 //   published by the Free Software Foundation; either version 2 of the 
@@ -27,9 +19,7 @@
 //   02111-1307, USA. 
 //
 //////////////////////////    END_GPL    //////////////////////////////////
-// MOOSCommPkt.cpp: implementation of the MOOSCommPkt class.
-//
-//////////////////////////////////////////////////////////////////////
+
 #ifdef _WIN32
     #pragma warning(disable : 4786)
     #pragma warning(disable : 4503)
@@ -99,7 +89,6 @@ bool Serialize( CMOOSCommPkt& Pkt, PyObject* obj, bool bToStream, bool bNoNULL, 
 BOOST_PYTHON_MODULE( CMOOSCommPkt )
 {
 	class_<CMOOSCommPkt> ("CMOOSCommPkt", "MOOS Packet Class." )
-		//.def( "Serialize", &Serialize, (boost::python::arg("bToStream")=true),(boost::python::arg("bNoNull")=false) ,(boost::python::arg("pdfPktTime")=NULL))
 		.def( "Serialize", &Serialize )
 		.def( "GetStreamLength", &CMOOSCommPkt::GetStreamLength )
 		.def( "Fill", &CMOOSCommPkt::Fill )

@@ -1,16 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////
 //
-//   MOOS - Mission Oriented Operating Suite 
+//   pyMOOS - An interface to the Mission Oriented Operating Suite  - see
+//   http://www.robots.ox.ac.uk/~mobile/MOOS/wiki/pmwiki.php
 //  
-//   A suit of Applications and Libraries for Mobile Robotics Research 
-//   Copyright (C) 2001-2005 Massachusetts Institute of Technology and 
-//   Oxford University. 
-//    
-//   This software was written by Paul Newman at MIT 2001-2002 and Oxford 
-//   University 2003-2005. email: pnewman@robots.ox.ac.uk. 
-//      
-//   This file is part of a  MOOS Core Component. 
-//        
 //   This program is free software; you can redistribute it and/or 
 //   modify it under the terms of the GNU General Public License as 
 //   published by the Free Software Foundation; either version 2 of the 
@@ -27,9 +19,7 @@
 //   02111-1307, USA. 
 //
 //////////////////////////    END_GPL    //////////////////////////////////
-// MOOSCommObject.cpp: implementation of the CMOOSCommObject class.
-//
-//////////////////////////////////////////////////////////////////////
+
 #ifdef _WIN32
     #pragma warning(disable : 4786)
     #pragma warning(disable : 4503)
@@ -74,40 +64,8 @@ class CMOOSCommObjectProxy : public CMOOSCommObject
 
 using namespace boost::python;
 
-//bool SendMsg(CMOOSCommObject obj, XPCTcpSocket *pSocket,CMOOSMsg &Msg);
-//bool SendMsg(CMOOSCommObject obj, XPCTcpSocket *pSocket,CMOOSMsg &Msg)
-//{
-	////return (obj.SendMsg( pSocket, Msg ));	
-    //return true;
-//}
-
-//bool ReadMsg(CMOOSCommObject obj, XPCTcpSocket *pSocket,CMOOSMsg &Msg);
-//bool ReadMsg(CMOOSCommObject obj, XPCTcpSocket *pSocket,CMOOSMsg &Msg)
-//{
-	////return (obj.ReadMsg( pSocket, Msg ));	
-//}
-
-//bool SendPkt(CMOOSCommObject obj, XPCTcpSocket* pSocket,CMOOSCommPkt & PktTx);
-//bool SendPkt(CMOOSCommObject obj, XPCTcpSocket* pSocket,CMOOSCommPkt & PktTx)
-//{
-	////return ( obj.SendPkt( pSocket, PktTx) );
-//}
-
-//bool ReadPkt(CMOOSCommObject obj, XPCTcpSocket* pSocket,CMOOSCommPkt & PktRx,int nSecondsTimeOut = -1);
-//bool ReadPkt(CMOOSCommObject obj, XPCTcpSocket* pSocket,CMOOSCommPkt & PktRx,int nSecondsTimeOut )
-//{
-	////return ( obj.ReadPkt( pSocket, PktRx) );
-//}
-
-
 BOOST_PYTHON_MODULE( CMOOSCommObject )
 {
-	//object a = class_<CMOOSCommObject> ("MOOSCommObject", "MOOS Communications Object." )
-		//.def( "SendPkt", SendPkt )	
-		//.def( "ReadPkt", ReadPkt )	
-		//.def( "SendMsg", SendMsg )	
-		//.def( "ReadMsg", ReadMsg )	
-	//;
     object a = class_<CMOOSCommObjectProxy> ("MOOSCommObject", "MOOS Communications Object." )
         .def( "SendPkt", &CMOOSCommObjectProxy::ProxySendPkt )	
         .def( "ReadPkt", &CMOOSCommObjectProxy::ProxyReadPkt )	

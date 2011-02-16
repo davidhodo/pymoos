@@ -173,8 +173,6 @@ class MOOSCommClient( Thread ):
             self.m_Outbox.append( msg )	
 
         try:
-            print '%d messages' % (len(self.m_Outbox))
-
             self.m_Outbox_Lock.acquire()
             PktTx.Serialize( self.m_Outbox, True, True, None )
             self.m_Outbox_Lock.release()
@@ -198,6 +196,13 @@ class MOOSCommClient( Thread ):
         #PktRx.Serialize( m_Inbox, false, true, dfServerPktTxTime )
         self.m_Inbox_Lock.acquire()
         PktRx.Serialize( self.m_Inbox, False, True, None )
+        
+        if self.onMailCallBack: 
+            try:
+                self.onMailCallBack()
+            except:
+                print 'Unable to evaluate user-specified on-mail callback'
+
         self.m_Inbox_Lock.release()
 
         #Clear the outbox
@@ -259,6 +264,9 @@ class MOOSApp( MOOSCommClient ):
     def DoRegistrations( self ):
         self.Register( 'counter', 0.0 );
 
+    def MailCallback( self ):
+        print 'Received mail'
+
     def GetMail( self ):	
         return self.Fetch();
 
@@ -266,10 +274,11 @@ if __name__ == "__main__":
 
     m = MOOSApp();
     m.SetOnConnectCallBack( m.DoRegistrations )
+    m.SetOnMailCallBack( m.MailCallback )
+    
     print '%s' % m.GetLocalIPAddress()
 
-    #m.Run( 'player.robots.ox.ac.uk', 9000, 'test_me', 100) 
-    m.Run( '127.0.0.1', 9000, 'test_me', 1) 
+    m.Run( '127.0.0.1', 9000, 'test_me', 100) 
 
     counter = 0;
 
@@ -280,10 +289,10 @@ if __name__ == "__main__":
         m.Notify( "counter", counter );
         counter += 1;
 
-        for message in messages:
-            print 'Message trace:'
-            print message.Trace()
-            print 'Message key:'
-            print message.GetKey()
-            print 'Message time:'
-            print message.GetTime()
+        #for message in messages:
+            #print 'Message trace:'
+            #print message.Trace()
+            #print 'Message key:'
+            #print message.GetKey()
+            #print 'Message time:'
+            #print message.GetTime()

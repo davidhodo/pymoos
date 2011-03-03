@@ -31,15 +31,15 @@
 
 using namespace boost::python;
 
-bool SendMessage( XPCTcpSocket& sock, long int py_data, int length)
+bool SendMessage( XPCTcpSocket& sock, std::size_t py_data, int length)
 {   
     return (sock.iSendMessage( (void*)py_data, length));
 }
 
 BOOST_PYTHON_MODULE( XPCTcpSocket )
 {
-    class_<XPCTcpSocket>( "XPCTcpSocket", init<long int>())
-        .def( init<long int>() )
+   class_<XPCTcpSocket>( "XPCTcpSocket", init<long int>())
+     .def( init<long int>() )
 		.def( "vBindSocket", &XPCTcpSocket::vBindSocket )
 		.def( "iSendMessage", &XPCTcpSocket::iSendMessage )
 		.def( "vConnect", &XPCTcpSocket::vConnect )

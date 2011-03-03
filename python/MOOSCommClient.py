@@ -3,15 +3,26 @@
 import ctypes
 import socket 
 import sys
-from time import *
-from threading import Thread, Lock, Event;
+from time import sleep, time
+from threading import Thread, RLock
 
-sys.path.append('../lib/')
+import unittest
+
+sys.path.append("../lib/")
 
 from XPCTcpSocket import *
 from CMOOSMsg  import *
 from CMOOSCommObject import *
 from CMOOSCommPkt import *
+
+def MOOSTime():
+    
+    # MOOSLocalTime is not available in pyMOOS (yet)
+    # but it exists inside CMOOSMsg !
+    #msg = MOOSMsg()
+    #return msg.GetTime()
+    
+    return time()
 
 class MOOSCommClient( Thread ):
 
@@ -20,32 +31,34 @@ class MOOSCommClient( Thread ):
         Thread.__init__(self)
 
         #Define the wire protocol
-        self.protocol = u"ELKS CAN'T DANCE 2/8/10";
+        self.protocol = u"ELKS CAN'T DANCE 2/8/10"
 
-        self.bConnected	= False;
-        self.m_bQuit 	= False;
-        self.host	= 'localhost'
+        self.bConnected	= False
+        self.m_bQuit 	= False
+        self.host	= "localhost"
         self.port 	= 9000
-        self.m_sMyName = 'pythonApp'
+        self.m_sMyName = "pythonApp"
 
         self.m_Outbox = []	
         self.m_Inbox = []	
 
-        self.sock = XPCTcpSocket(9000);
-        self.comms = MOOSCommObject();
+        self.onMailCallBack = None
 
-        self.m_Outbox_Lock = Lock();
-        self.m_Inbox_Lock = Lock();
+        self.sock = XPCTcpSocket(9000)
+        self.comms = MOOSCommObject()
+
+        self.m_Outbox_Lock = RLock()
+        self.m_Inbox_Lock = RLock()
 
     def Close( self ):
-        '''Notify thread about closing connection'''
+        "Notify thread about closing connection"
         self.m_bQuit = True
         self.join()
 
     def Notify( self, variable, value, time=-1):
-        '''Add a message to the outbox'''
-
-        Msg = MOOSMsg( 'N', variable, value, time )
+        "Add a message to the outbox"
+        
+        Msg = MOOSMsg( "N", variable, value, time )
 
         if self.__Post( Msg ):
             return True
@@ -53,11 +66,12 @@ class MOOSCommClient( Thread ):
             return False
 
     def Register( self, variable, interval ):
-        '''Register with the DB for some variable'''
+        "Register with the DB for some variable"
         if not variable:
             return False
 
-        MsgR = MOOSMsg( 'R', variable, interval, -1 )
+        time = -1
+        MsgR = MOOSMsg( "R", variable, interval, time )
 
         if self.__Post( MsgR ):
             return True
@@ -65,28 +79,29 @@ class MOOSCommClient( Thread ):
             return False
 
     def UnRegister( self, variable ):
-        '''De-Register with the DB for some variable'''
-        print 'UnRegister'
+        "De-Register with the DB for some variable"
+        print "UnRegister"
 
     def IsConnected( self ):
-        return self.bConnected;
+        return self.bConnected
 
     def SetCommsTick( self, nCommTick ):
-        if nCommTick > MAX_TICK:
-            self.mFundamentalFrequency = MAX_TICK
-        else:
-            self.mFundamentalFrequency = nCommTick 
+        self.mFundamentalFrequency = min(nCommTick, MAX_TICK) 
+        return
 
     def Fetch( self ):
-        '''Called by client to retrieve non-null MOOS Messages'''
-        #self.m_Inbox_Lock.acquire()
+        "Called by client to retrieve non-null MOOS Messages"
+        self.m_Inbox_Lock.acquire()
         data = self.m_Inbox	
-        #self.m_Inbox_Lock.release()
+        self.m_Inbox_Lock.release()
         self.m_Inbox = []
-        return data;
+        return data
 
     def Run( self, host, port, myName, fundamentalFreq=5):
-        '''Entry point for the MOOS exchange'''
+        """
+        Entry point for the MOOS exchange
+        fundamentalFreq is in [Hz]
+        """
         self.host 	= host 
         self.port 	= port
         self.m_sMyName 	= myName 
@@ -94,19 +109,19 @@ class MOOSCommClient( Thread ):
         self.daemon 	= True
         self.start()
 
-        return True;
+        return True
 
     def SetOnConnectCallBack( self, fn ):
         self.onConnectCallBack = fn
-        return True;
+        return True
 
     def SetOnDisconnectCallBack( self, fn ):
         self.onDisconnectCallBack = fn
-        return True;
+        return True
 
     def SetOnMailCallBack( self, fn ):
         self.onMailCallBack = fn
-        return True;
+        return True
 
     def PeekMail( self, MOOSMSG_LIST, Key, erase=False, findYoungest=False ):
 
@@ -117,19 +132,22 @@ class MOOSCommClient( Thread ):
         return None
 
     def ServerRequest( self, sWhat, timout=-1, bClear=False ):
-        print 'Not yet implemented'	
+        print "Not yet implemented"	
 
     def Peek( self, MOOSMSG_LIST, Key, erase=True  ):
-        print 'Not yet implemented'
+        print "Not yet implemented"
 
     def GetLocalIPAddress( self ):
         ip = socket.gethostbyaddr( socket.gethostname() )
         return ip[2]
 
     def run( self ):
-        '''Threading entry point'''
+        """
+        Threading entry point.
+        This method is launched when Thread.start() is called
+        """
         self.__ClientLoop()
-        return True;
+        return True
 
     def __ClientLoop( self ):
 
@@ -145,105 +163,108 @@ class MOOSCommClient( Thread ):
                         break
 
             else:
-                print 'Unable to connect to %s'	 % self.host	
-                sleep( 1 )				
+                print "Unable to connect to %s"	 % self.host	
+                sleep( 1 )
+        return
 
     def __ConnectToServer( self ):
         if ( self.IsConnected() ):
-            print 'Already connected'
-            return True;
+            print "Already connected"
+            return True
         try:
             self.sock.vConnect( self.host )	
 
             if ( self.__HandShake() ):
                 return True
         except:
-            return False;
+            raise # throw the exception
+            return False
 
     def __DoClientWork( self ):
-        '''Main I/O loop'''
+        "Main I/O loop"
 
-        PktTx = CMOOSCommPkt();
-        PktRx = CMOOSCommPkt();
+        PktTx = CMOOSCommPkt()
+        PktRx = CMOOSCommPkt()
 
+        self.m_Outbox_Lock.acquire()
         if not self.m_Outbox:
-            '''Send a message to tick things over'''
+            "Send a message to tick things over"
             msg = MOOSMsg()
-            msg.m_sSrc = self.m_sMyName;
+            msg.m_sSrc = self.m_sMyName
             self.m_Outbox.append( msg )	
-
-        try:
-            self.m_Outbox_Lock.acquire()
-            PktTx.Serialize( self.m_Outbox, True, True, None )
-            self.m_Outbox_Lock.release()
+            
+        try:            
+            PktTx.Serialize( self.m_Outbox, True, True, None )            
         except:
             return False
+        #Clear the outbox
         self.m_Outbox = []
-
+        self.m_Outbox_Lock.release()
 
         #Get the local time
         #dfLocalPktTxTime = MOOSLocalTime()
 
         if not self.comms.SendPkt( self.sock, PktTx ):
-            print 'Send error'
+            print "Send error"
             return False
 
         if not self.comms.ReadPkt( self.sock, PktRx, -1 ):
-            print 'Receive error'
+            print "Receive error"
             return False
 
-        #dfLocalPktRxTime = MOOSLocalTime();
+        #dfLocalPktRxTime = MOOSLocalTime()
         #PktRx.Serialize( m_Inbox, false, true, dfServerPktTxTime )
         self.m_Inbox_Lock.acquire()
         PktRx.Serialize( self.m_Inbox, False, True, None )
         
-        if self.onMailCallBack: 
+        if self.onMailCallBack and self.m_Inbox: 
             try:
                 self.onMailCallBack()
             except:
-                print 'Unable to evaluate user-specified on-mail callback'
+                print "Unable to evaluate user-specified on-mail callback"
+                raise
 
         self.m_Inbox_Lock.release()
-
-        #Clear the outbox
-        self.m_Outbox = []
 
         return True
 
     def __HandShake( self ):
 
         #Send the wire protocol
-        #c = ctypes.c_char_p( u"ELKS CAN'T DANCE 2/8/10" );
+        #c = ctypes.c_char_p( u"ELKS CAN"T DANCE 2/8/10" )
         c = ctypes.c_char_p( self.protocol )
         v = ctypes.cast( c, ctypes.c_void_p )
       
-        self.sock.SendMessage( v.value, 32);
+        self.sock.SendMessage( v.value, 32)
 
-        Msg = MOOSMsg( 'D', '', self.m_sMyName , 1.0 )
+        Msg = MOOSMsg( "D", "", self.m_sMyName , 1.0 )
         self.comms.SendMsg( self.sock, Msg  )
 
-        WelcomeMsg = MOOSMsg();
+        WelcomeMsg = MOOSMsg()
         self.comms.ReadMsg( self.sock, WelcomeMsg )
 
-        if ( WelcomeMsg.IsType( 'K' ) ):
-            print 'Client was poisioned'
+        if ( WelcomeMsg.IsType( "K" ) ):
+            print "Client was poisioned"
             return False
 
         self.skew = WelcomeMsg.m_dfVal
 
         #Invoke onconnect callback
         try:
-            self.onConnectCallBack();
+            self.onConnectCallBack()
         except:
-            print 'Unable to evaluate user-specified callback'
+            print "Unable to evaluate user-specified callback"
 
         return True
 
+    def Post(self, message):
+        return self.__Post(message)
+        
     def __Post( self, message ):
-        '''Called by client to send a message to the MOOS DB'''
+        "Called by client to send a message to the MOOS DB"
 
         try:
-            message.m_sSrc = self.m_sMyName;
+            message.m_sSrc = self.m_sMyName
 
             self.m_Outbox_Lock.acquire()
             self.m_Outbox.append( message )
@@ -256,43 +277,199 @@ class MOOSCommClient( Thread ):
 
 
 class MOOSApp( MOOSCommClient ):
-    '''Test class for the MOOSCommClient class'''
+    "Test class for the MOOSCommClient class"
 
     def __init__(self):
         MOOSCommClient.__init__(self)
 
     def DoRegistrations( self ):
-        self.Register( 'counter', 0.0 );
+        self.Register( "counter", 0.0 )
 
     def MailCallback( self ):
-        print 'Received mail'
+        print "Received mail"
+    
 
-    def GetMail( self ):	
-        return self.Fetch();
+class ClientOne( MOOSCommClient ):
+    "Test class for the TestMessagesExchanges test case"
 
-if __name__ == "__main__":
+    def __init__(self):
+        MOOSCommClient.__init__(self)
+        self.SetOnConnectCallBack( self.do_registrations )
+        self.SetOnMailCallBack( self.mail_callback )
+        self.number_of_received_messages = 0
+        
+        fundamental_frequency = 100 # [Hz]
+        self.Run("localhost", 9000, self.__class__.__name__, fundamental_frequency)
 
-    m = MOOSApp();
+        return
+
+    def do_registrations(self):
+        self.Register( "message_to_client_one", 0.0 )
+        return
+        
+       
+    def mail_callback(self):
+        #print  self.__class__.__name__, " received mail"
+        messages = self.Fetch()
+
+        current_time = MOOSTime()
+        #print "current_time", current_time
+        
+        filtered_messages = \
+            [m for m in messages if m.IsSkewed(current_time, None) == False]        
+        
+        self.number_of_received_messages += len(filtered_messages)    
+
+        print_messages = True
+        #print_messages = False
+        if print_messages:
+            print self.__class__.__name__, "received:"
+            for message in messages:
+                print message.GetKey(), \
+                    ":", message.GetString(), \
+                    "\ndelta_time", current_time - message.GetTime(), \
+                    "skewed", message.IsSkewed(current_time, None) 
+        
+        return
+        
+    def wait_to_receive_message(self, timeout = 5):
+        """
+        timeout is in [seconds]
+        """
+
+        initial_time = time()
+        
+        while (time() - initial_time) < timeout:
+            sleep(0.1)
+            if self.number_of_received_messages > 0:
+                print self.__class__.__name__, \
+                        "received %i messages" % self.number_of_received_messages 
+                return True
+            else:
+                continue
+
+        return False
+        
+class ClientTwo( ClientOne ):
+    "Test class for the TestMessagesExchanges test case"
+
+    def __init__(self):
+        ClientOne.__init__(self)
+        return
+
+    def do_registrations(self):
+        self.Register( "message_to_client_two", 0.0 )
+        return
+ 
+  
+class TestMessagesExchanges(unittest.TestCase):
+    
+    def setUp(self):
+        self.client_one = ClientOne()
+        self.client_two = ClientTwo()
+        
+        self._wait_until_clients_are_connected()
+        return
+
+    def _wait_until_clients_are_connected(self):
+        
+        timeout_in_seconds = 5
+        initial_time = time()
+        print "\nConnecting the clients",
+        while (time() - initial_time) < timeout_in_seconds:
+            sleep(0.1)
+            print ".",; sys.stdout.flush()
+            
+            if self.client_one.IsConnected() and self.client_two.IsConnected():
+                print "Connected"
+                return True
+            else:
+                continue
+        
+        print "MOOS clients connection failed. Is MOOSDB running ?"
+        raise Exception("Timeout waiting for clients one and two to connect")
+        return
+    
+    def test_messages_exchanges(self):
+        
+        self._test_sending_and_not_receiving_messages()
+        print "_test_sending_and_not_receiving_messages DONE"
+        
+        # we reset the counters
+        self.client_one.number_of_received_messages = 0
+        self.client_two.number_of_received_messages = 0
+
+        self._test_sending_and_receiving_messages()
+        print "_test_sending_and_receiving_messages DONE"
+                
+        return
+    
+    def _test_sending_and_receiving_messages(self):
+        
+        # client1 send messages
+        self.client_one.Notify("message_to_client_two", "Hello client two !")
+        
+         # client2 should receive them
+        received = self.client_two.wait_to_receive_message()
+        self.assertTrue(received)
+        
+        # client2 send messages    
+        self.client_two.Notify("message_to_client_one", "Hello client one !")
+                
+        # client1 should receive them
+        received = self.client_one.wait_to_receive_message()
+        self.assertTrue(received)
+
+       
+        return
+
+    def _test_sending_and_not_receiving_messages(self):
+        
+        # client1 send messages
+        self.client_one.Notify("message_to_client_two", "Hello client two !")
+        
+         # client2 should receive them
+        received = self.client_two.wait_to_receive_message()
+        self.assertTrue(received)
+      
+        # client1 should not have received any message
+        timeout = 2 # [seconds]
+        received = self.client_one.wait_to_receive_message(timeout)
+        self.assertFalse(received)
+
+        return
+
+
+def mini_test():
+    
+    m = MOOSApp()
     m.SetOnConnectCallBack( m.DoRegistrations )
     m.SetOnMailCallBack( m.MailCallback )
     
-    print '%s' % m.GetLocalIPAddress()
+    print "%s" % m.GetLocalIPAddress()
 
-    m.Run( '127.0.0.1', 9000, 'test_me', 100) 
+    fundamental_frequency = 10 # [Hz]
+    m.Run( "127.0.0.1", 9000, "test_me", fundamental_frequency) 
 
-    counter = 0;
+    counter = 0
 
     while True:
         sleep(.01)
-        messages = m.GetMail()
+        messages = m.Fetch()
 
-        m.Notify( "counter", counter );
-        counter += 1;
+        m.Notify( "counter", counter )
+        counter += 1
 
-        #for message in messages:
-            #print 'Message trace:'
-            #print message.Trace()
-            #print 'Message key:'
-            #print message.GetKey()
-            #print 'Message time:'
-            #print message.GetTime()
+        for message in messages:
+            print "Message trace:", message.Trace()
+            print "Message key:", message.GetKey()
+            print "Message time:", message.GetTime()
+            
+    return
+
+if __name__ == "__main__":
+
+    suite = unittest.TestLoader().loadTestsFromTestCase(TestMessagesExchanges)
+    unittest.TextTestRunner(verbosity=3).run(suite)
+
+    #mini_test()

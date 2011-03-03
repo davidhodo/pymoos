@@ -298,7 +298,7 @@ class ClientOne( MOOSCommClient ):
         self.SetOnMailCallBack( self.mail_callback )
         self.number_of_received_messages = 0
         
-        fundamental_frequency = 100 # [Hz]
+        fundamental_frequency = 10 # [Hz]
         self.Run("localhost", 9000, self.__class__.__name__, fundamental_frequency)
 
         return

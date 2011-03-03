@@ -65,8 +65,11 @@ class MOOSCommClient( Thread ):
         else:
             return False
 
-    def Register( self, variable, interval ):
-        "Register with the DB for some variable"
+    def Register( self, variable, interval=0):
+        """
+        Register with the DB for some variable
+        interval is the minimum time between notifications
+        """
         if not variable:
             return False
 
@@ -91,11 +94,25 @@ class MOOSCommClient( Thread ):
 
     def Fetch( self ):
         "Called by client to retrieve non-null MOOS Messages"
-        self.m_Inbox_Lock.acquire()
-        data = self.m_Inbox	
-        self.m_Inbox_Lock.release()
-        self.m_Inbox = []
+        with self.m_Inbox_Lock:
+            data = self.m_Inbox	
+            self.m_Inbox = []
         return data
+
+    def FetchRecentMail( self ):
+        """
+        Filter messages in the inbox to remove old messages.
+        Uses the MOOSMsg.IsSkewed method to detect old messages
+        """
+        messages = self.Fetch()
+        
+        current_time = MOOSTime()
+        #print "current_time", current_time
+        
+        filtered_messages = \
+            [m for m in messages if m.IsSkewed(current_time, None) == False]        
+
+        return filtered_messages
 
     def Run( self, host, port, myName, fundamentalFreq=5):
         """
@@ -186,20 +203,20 @@ class MOOSCommClient( Thread ):
         PktTx = CMOOSCommPkt()
         PktRx = CMOOSCommPkt()
 
-        self.m_Outbox_Lock.acquire()
-        if not self.m_Outbox:
-            "Send a message to tick things over"
-            msg = MOOSMsg()
-            msg.m_sSrc = self.m_sMyName
-            self.m_Outbox.append( msg )	
-            
-        try:            
-            PktTx.Serialize( self.m_Outbox, True, True, None )            
-        except:
-            return False
-        #Clear the outbox
-        self.m_Outbox = []
-        self.m_Outbox_Lock.release()
+        with self.m_Outbox_Lock:
+            if not self.m_Outbox:
+                "Send a message to tick things over"
+                msg = MOOSMsg()
+                msg.m_sSrc = self.m_sMyName
+                self.m_Outbox.append( msg )	
+                
+            try:            
+                PktTx.Serialize( self.m_Outbox, True, True, None )            
+            except:
+                return False
+            #Clear the outbox
+            self.m_Outbox = []
+        # release self.m_Outbox_Lock
 
         #Get the local time
         #dfLocalPktTxTime = MOOSLocalTime()
@@ -214,17 +231,17 @@ class MOOSCommClient( Thread ):
 
         #dfLocalPktRxTime = MOOSLocalTime()
         #PktRx.Serialize( m_Inbox, false, true, dfServerPktTxTime )
-        self.m_Inbox_Lock.acquire()
-        PktRx.Serialize( self.m_Inbox, False, True, None )
-        
-        if self.onMailCallBack and self.m_Inbox: 
-            try:
-                self.onMailCallBack()
-            except:
-                print "Unable to evaluate user-specified on-mail callback"
-                raise
+        with self.m_Inbox_Lock:
+            PktRx.Serialize( self.m_Inbox, False, True, None )
+            
+            if self.onMailCallBack and self.m_Inbox: 
+                try:
+                    self.onMailCallBack()
+                except:
+                    print "Unable to evaluate user-specified on-mail callback"
+                    raise
 
-        self.m_Inbox_Lock.release()
+        # release self.m_Inbox_Lock
 
         return True
 
@@ -266,9 +283,8 @@ class MOOSCommClient( Thread ):
         try:
             message.m_sSrc = self.m_sMyName
 
-            self.m_Outbox_Lock.acquire()
-            self.m_Outbox.append( message )
-            self.m_Outbox_Lock.release()
+            with self.m_Outbox_Lock: 
+                self.m_Outbox.append( message )
 
             return True
         except:
@@ -304,24 +320,20 @@ class ClientOne( MOOSCommClient ):
         return
 
     def do_registrations(self):
-        self.Register( "message_to_client_one", 0.0 )
+        self.Register( "message_to_client_one")
         return
         
        
     def mail_callback(self):
         #print  self.__class__.__name__, " received mail"
-        messages = self.Fetch()
-
-        current_time = MOOSTime()
-        #print "current_time", current_time
         
-        filtered_messages = \
-            [m for m in messages if m.IsSkewed(current_time, None) == False]        
+        current_time = MOOSTime()        
+        messages = self.FetchRecentMail()
         
-        self.number_of_received_messages += len(filtered_messages)    
+        self.number_of_received_messages += len(messages)    
 
-        print_messages = True
-        #print_messages = False
+        #print_messages = True
+        print_messages = False
         if print_messages:
             print self.__class__.__name__, "received:"
             for message in messages:
@@ -358,7 +370,7 @@ class ClientTwo( ClientOne ):
         return
 
     def do_registrations(self):
-        self.Register( "message_to_client_two", 0.0 )
+        self.Register( "message_to_client_two")
         return
  
   

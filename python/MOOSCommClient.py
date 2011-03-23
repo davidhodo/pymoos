@@ -42,6 +42,7 @@ class MOOSCommClient( Thread ):
         self.m_Outbox = []	
         self.m_Inbox = []	
 
+        self.onConnectCallBack = None
         self.onMailCallBack = None
 
         self.sock = XPCTcpSocket(9000)
@@ -238,7 +239,7 @@ class MOOSCommClient( Thread ):
                 try:
                     self.onMailCallBack()
                 except:
-                    print "Unable to evaluate user-specified on-mail callback"
+                    print "Unable to evaluate user-specified onMailCallBack"
                     raise
 
         # release self.m_Inbox_Lock
@@ -267,10 +268,11 @@ class MOOSCommClient( Thread ):
         self.skew = WelcomeMsg.m_dfVal
 
         #Invoke onconnect callback
-        try:
-            self.onConnectCallBack()
-        except:
-            print "Unable to evaluate user-specified callback"
+        if self.onConnectCallBack:
+            try:
+                self.onConnectCallBack()
+            except:
+                print "Unable to evaluate user-specified onConnectCallBack"
 
         return True
 

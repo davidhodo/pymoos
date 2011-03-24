@@ -171,11 +171,11 @@ class MOOSCommClient( Thread ):
 
         while not self.m_bQuit:
 
-            if ( self.__ConnectToServer() ):
+            if (self.__ConnectToServer()):
                 self.bConnected = True
 
                 while not self.m_bQuit:
-                    sleep( 1/self.mFundamentalFrequency )
+                    sleep(1.0/self.mFundamentalFrequency)
 
                     if not self.__DoClientWork():
                         break

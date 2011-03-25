@@ -21,8 +21,8 @@
 //////////////////////////    END_GPL    //////////////////////////////////
 
 #ifdef _WIN32
-    #pragma warning(disable : 4786)
-    #pragma warning(disable : 4503)
+#pragma warning(disable : 4786)
+#pragma warning(disable : 4503)
 #endif
 
 #include <MOOSGenLib/MOOSGenLib.h>
@@ -30,34 +30,36 @@
 #include <MOOSLIB/XPCTcpSocket.h>
 #include <MOOSLIB/MOOSCommObject.h>
 #include <MOOSLIB/MOOSException.h>
+
 #include <iostream>
 #include <memory>
+#include <string>
 
 #include <boost/python.hpp>
 
 class CMOOSCommObjectProxy : public CMOOSCommObject
 {
-    public:
-        CMOOSCommObjectProxy(){};
-        bool ProxySendPkt (XPCTcpSocket* pSocket,CMOOSCommPkt & PktTx)
-        {
-            return SendPkt( pSocket, PktTx );
-        };
+public:
+    CMOOSCommObjectProxy(){};
+    bool ProxySendPkt (XPCTcpSocket* pSocket,CMOOSCommPkt & PktTx)
+    {
+        return SendPkt( pSocket, PktTx );
+    }
 
-        bool ProxyReadPkt (XPCTcpSocket* pSocket,CMOOSCommPkt & PktRx,int nSecondsTimeOut )
-        {
-            return ReadPkt( pSocket, PktRx );
-        };
+    bool ProxyReadPkt (XPCTcpSocket* pSocket,CMOOSCommPkt & PktRx,int nSecondsTimeOut )
+    {
+        return ReadPkt( pSocket, PktRx );
+    }
 
-        bool ProxySendMsg (XPCTcpSocket *pSocket,CMOOSMsg &Msg)
-        {
-            return SendMsg( pSocket, Msg );
-        };
+    bool ProxySendMsg (XPCTcpSocket *pSocket,CMOOSMsg &Msg)
+    {
+        return SendMsg( pSocket, Msg );
+    }
 
-        bool ProxyReadMsg (XPCTcpSocket *pSocket,CMOOSMsg &Msg)
-        {
-            return ReadMsg( pSocket, Msg );
-        };    
+    bool ProxyReadMsg (XPCTcpSocket *pSocket,CMOOSMsg &Msg)
+    {
+        return ReadMsg( pSocket, Msg );
+    }
 
 };
 
@@ -67,10 +69,10 @@ using namespace boost::python;
 BOOST_PYTHON_MODULE( CMOOSCommObject )
 {
     object a = class_<CMOOSCommObjectProxy> ("MOOSCommObject", "MOOS Communications Object." )
-        .def( "SendPkt", &CMOOSCommObjectProxy::ProxySendPkt )	
-        .def( "ReadPkt", &CMOOSCommObjectProxy::ProxyReadPkt )	
-        .def( "SendMsg", &CMOOSCommObjectProxy::ProxySendMsg )	
-        .def( "ReadMsg", &CMOOSCommObjectProxy::ProxyReadMsg )	
-    ;
+            .def( "SendPkt", &CMOOSCommObjectProxy::ProxySendPkt )
+            .def( "ReadPkt", &CMOOSCommObjectProxy::ProxyReadPkt )
+            .def( "SendMsg", &CMOOSCommObjectProxy::ProxySendMsg )
+            .def( "ReadMsg", &CMOOSCommObjectProxy::ProxyReadMsg )
+            ;
 }
 

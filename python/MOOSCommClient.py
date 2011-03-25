@@ -156,8 +156,9 @@ class MOOSCommClient( Thread ):
         print "Not yet implemented"
 
     def GetLocalIPAddress( self ):
-        ip = socket.gethostbyaddr( socket.gethostname() )
-        return ip[2]
+        #ip = socket.gethostbyaddr( socket.gethostname() )
+        #return ip[2] # returns '::1' on rodrigob's machine
+        return socket.gethostname()
 
     def run( self ):
         """

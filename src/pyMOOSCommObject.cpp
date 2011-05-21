@@ -36,6 +36,8 @@
 #include <string>
 
 #include <boost/python.hpp>
+#include <boost/python/exception_translator.hpp>
+
 
 class CMOOSCommObjectProxy : public CMOOSCommObject
 {
@@ -63,11 +65,22 @@ public:
 
 };
 
+void translate_cmoos_exception(const CMOOSException &e)
+{
+   // Use the Python 'C' API to set up an exception object
+   PyErr_SetString(PyExc_RuntimeError, 
+		   //e.c_str()
+		   e.m_sReason);       
+}
+
 
 using namespace boost::python;
 
 BOOST_PYTHON_MODULE( CMOOSCommObject )
 {
+   
+   register_exception_translator<CMOOSException>(&translate_cmoos_exception);
+   
     object a = class_<CMOOSCommObjectProxy> ("MOOSCommObject", "MOOS Communications Object." )
             .def( "SendPkt", &CMOOSCommObjectProxy::ProxySendPkt )
             .def( "ReadPkt", &CMOOSCommObjectProxy::ProxyReadPkt )

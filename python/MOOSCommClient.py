@@ -222,12 +222,24 @@ class MOOSCommClient( Thread ):
 
         #Get the local time
         #dfLocalPktTxTime = MOOSLocalTime()
+        
+        sent_value = None
+        try:
+            sent_value = self.comms.SendPkt( self.sock, PktTx )
+        except RuntimeError as e:
+            print "SendPkt raised a RuntimeError", e
 
-        if not self.comms.SendPkt( self.sock, PktTx ):
+        if not sent_value:
             print "Send error"
             return False
 
-        if not self.comms.ReadPkt( self.sock, PktRx, -1 ):
+        read_value = None
+        try:
+            read_value = self.comms.ReadPkt( self.sock, PktRx, -1 )
+        except RuntimeError as e:
+            print "ReadPkt raised a RuntimeError", e
+             
+        if not read_value:
             print "Receive error"
             return False
 

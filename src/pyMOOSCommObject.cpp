@@ -68,9 +68,8 @@ public:
 void translate_cmoos_exception(const CMOOSException &e)
 {
    // Use the Python 'C' API to set up an exception object
-   PyErr_SetString(PyExc_RuntimeError, 
-		   //e.c_str()
-		   e.m_sReason);       
+   PyErr_SetString(PyExc_RuntimeError, e.m_sReason);
+   return;
 }
 
 

@@ -36,8 +36,23 @@ bool SendMessage( XPCTcpSocket& sock, std::size_t py_data, int length)
     return (sock.iSendMessage( (void*)py_data, length));
 }
 
+
+
+void translate_xpc_exception(const XPCException &e)
+{
+   XPCException ee(e); // workaround the const issue
+   
+   // Use the Python 'C' API to set up an exception object
+   PyErr_SetString(PyExc_RuntimeError, ee.sGetException() );
+   return;
+}
+      
+      
+
 BOOST_PYTHON_MODULE( XPCTcpSocket )
 {
+   register_exception_translator<XPCException>(&translate_xpc_exception);
+   
    class_<XPCTcpSocket>( "XPCTcpSocket", init<long int>())
      .def( init<long int>() )
 		.def( "vBindSocket", &XPCTcpSocket::vBindSocket )

@@ -179,6 +179,8 @@ class MOOSCommClient( Thread ):
                     sleep(1.0/self.mFundamentalFrequency)
 
                     if not self.__DoClientWork():
+                        # something went wrong, we have lost the connection
+                        self.bConnected = False
                         break
 
             else:
@@ -191,7 +193,14 @@ class MOOSCommClient( Thread ):
             print "Already connected"
             return True
         try:
-            self.sock.vConnect( self.host )	
+            try:
+                self.sock.vConnect( self.host )	
+            except RuntimeError:
+                # let us try a second time with a new socket
+                # FIXME is this a good idea ?
+                del self.sock    
+                self.sock = XPCTcpSocket(9000)
+                self.sock.vConnect( self.host )	
 
             if ( self.__HandShake() ):
                 return True

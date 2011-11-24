@@ -31,7 +31,7 @@ class MOOSCommClient( Thread ):
         Thread.__init__(self)
 
         #Define the wire protocol
-        self.protocol = u"ELKS CAN'T DANCE 2/8/10"
+        self.protocol = "ELKS CAN'T DANCE 2/8/10".encode('utf-8')	
 
         self.bConnected	= False
         self.m_bQuit 	= False
@@ -84,7 +84,7 @@ class MOOSCommClient( Thread ):
 
     def UnRegister( self, variable ):
         "De-Register with the DB for some variable"
-        print "UnRegister"
+        print("UnRegister")
 
     def IsConnected( self ):
         return self.bConnected
@@ -150,10 +150,10 @@ class MOOSCommClient( Thread ):
         return None
 
     def ServerRequest( self, sWhat, timout=-1, bClear=False ):
-        print "Not yet implemented"	
+        print("Not yet implemented")
 
     def Peek( self, MOOSMSG_LIST, Key, erase=True  ):
-        print "Not yet implemented"
+        print("Not yet implemented")
 
     def GetLocalIPAddress( self ):
         #ip = socket.gethostbyaddr( socket.gethostname() )
@@ -184,13 +184,13 @@ class MOOSCommClient( Thread ):
                         break
 
             else:
-                print "Unable to connect to %s"	 % self.host	
+                print("Unable to connect to %s"	 % self.host)
                 sleep( 1 )
         return
 
     def __ConnectToServer( self ):
         if ( self.IsConnected() ):
-            print "Already connected"
+            print("Already connected")
             return True
         try:
             try:
@@ -236,20 +236,20 @@ class MOOSCommClient( Thread ):
         try:
             sent_value = self.comms.SendPkt( self.sock, PktTx )
         except RuntimeError as e:
-            print "SendPkt raised a RuntimeError", e
+            print("SendPkt raised a RuntimeError", e)
 
         if not sent_value:
-            print "Send error"
+            print("Send error")
             return False
 
         read_value = None
         try:
             read_value = self.comms.ReadPkt( self.sock, PktRx, -1 )
         except RuntimeError as e:
-            print "ReadPkt raised a RuntimeError", e
+            print("ReadPkt raised a RuntimeError", e)
              
         if not read_value:
-            print "Receive error"
+            print("Receive error")
             return False
 
         #dfLocalPktRxTime = MOOSLocalTime()
@@ -261,7 +261,7 @@ class MOOSCommClient( Thread ):
                 try:
                     self.onMailCallBack()
                 except:
-                    print "Unable to evaluate user-specified onMailCallBack"
+                    print("Unable to evaluate user-specified onMailCallBack")
                     raise
 
         # release self.m_Inbox_Lock
@@ -284,7 +284,7 @@ class MOOSCommClient( Thread ):
         self.comms.ReadMsg( self.sock, WelcomeMsg )
 
         if ( WelcomeMsg.IsType( "K" ) ):
-            print "Client was poisioned"
+            print("Client was poisioned")
             return False
 
         self.skew = WelcomeMsg.m_dfVal
@@ -294,7 +294,7 @@ class MOOSCommClient( Thread ):
             try:
                 self.onConnectCallBack()
             except:
-                print "Unable to evaluate user-specified onConnectCallBack"
+                print("Unable to evaluate user-specified onConnectCallBack")
 
         return True
 
@@ -326,7 +326,7 @@ class MOOSApp( MOOSCommClient ):
         self.Register( "counter", 0.0 )
 
     def MailCallback( self ):
-        print "Received mail"
+        print("Received mail")
     
 
 class ClientOne( MOOSCommClient ):
@@ -359,12 +359,12 @@ class ClientOne( MOOSCommClient ):
         #print_messages = True
         print_messages = False
         if print_messages:
-            print self.__class__.__name__, "received:"
+            print(self.__class__.__name__, "received:")
             for message in messages:
-                print message.GetKey(), \
+                print(message.GetKey(), \
                     ":", message.GetString(), \
                     "\ndelta_time", current_time - message.GetTime(), \
-                    "skewed", message.IsSkewed(current_time, None) 
+                    "skewed", message.IsSkewed(current_time, None))
         
         return
         
@@ -378,8 +378,8 @@ class ClientOne( MOOSCommClient ):
         while (time() - initial_time) < timeout:
             sleep(0.1)
             if self.number_of_received_messages > 0:
-                print self.__class__.__name__, \
-                        "received %i messages" % self.number_of_received_messages 
+                print(self.__class__.__name__, \
+                        "received %i messages" % self.number_of_received_messages)
                 return True
             else:
                 continue
@@ -411,32 +411,32 @@ class TestMessagesExchanges(unittest.TestCase):
         
         timeout_in_seconds = 5
         initial_time = time()
-        print "\nConnecting the clients",
+        print("\nConnecting the clients",)
         while (time() - initial_time) < timeout_in_seconds:
             sleep(0.1)
-            print ".",; sys.stdout.flush()
+            print(".",); sys.stdout.flush()
             
             if self.client_one.IsConnected() and self.client_two.IsConnected():
-                print "Connected"
+                print("Connected")
                 return True
             else:
                 continue
         
-        print "MOOS clients connection failed. Is MOOSDB running ?"
+        print("MOOS clients connection failed. Is MOOSDB running ?")
         raise Exception("Timeout waiting for clients one and two to connect")
         return
     
     def test_messages_exchanges(self):
         
         self._test_sending_and_not_receiving_messages()
-        print "_test_sending_and_not_receiving_messages DONE"
+        print("_test_sending_and_not_receiving_messages DONE")
         
         # we reset the counters
         self.client_one.number_of_received_messages = 0
         self.client_two.number_of_received_messages = 0
 
         self._test_sending_and_receiving_messages()
-        print "_test_sending_and_receiving_messages DONE"
+        print("_test_sending_and_receiving_messages DONE")
                 
         return
     
@@ -482,7 +482,7 @@ def mini_test():
     m.SetOnConnectCallBack( m.DoRegistrations )
     m.SetOnMailCallBack( m.MailCallback )
     
-    print "%s" % m.GetLocalIPAddress()
+    print("%s" % m.GetLocalIPAddress())
 
     fundamental_frequency = 10 # [Hz]
     m.Run( "127.0.0.1", 9000, "test_me", fundamental_frequency) 
@@ -497,9 +497,9 @@ def mini_test():
         counter += 1
 
         for message in messages:
-            print "Message trace:", message.Trace()
-            print "Message key:", message.GetKey()
-            print "Message time:", message.GetTime()
+            print("Message trace:", message.Trace())
+            print("Message key:", message.GetKey())
+            print("Message time:", message.GetTime())
             
     return
 

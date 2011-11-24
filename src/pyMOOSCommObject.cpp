@@ -25,6 +25,9 @@
 #pragma warning(disable : 4503)
 #endif
 
+#include <boost/python.hpp>
+#include <boost/python/exception_translator.hpp>
+
 #include <MOOSGenLib/MOOSGenLib.h>
 #include <MOOSLIB/MOOSCommPkt.h>
 #include <MOOSLIB/XPCTcpSocket.h>
@@ -34,9 +37,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-
-#include <boost/python.hpp>
-#include <boost/python/exception_translator.hpp>
 
 
 class CMOOSCommObjectProxy : public CMOOSCommObject

@@ -24,6 +24,8 @@
 #pragma warning(disable : 4786)
 #endif
 
+#include <boost/python.hpp>
+
 #include <MOOSGenLib/MOOSGenLib.h>
 #include <MOOSLIB/MOOSMsg.h>
 #include <MOOSLIB/MOOSException.h>
@@ -34,7 +36,6 @@
 #include <cmath>
 #include <cstring>
 
-#include <boost/python.hpp>
 
 using namespace boost::python;
 

@@ -20,6 +20,7 @@
 //
 //////////////////////////    END_GPL    //////////////////////////////////
 
+#include <boost/python.hpp>
 #include <MOOSLIB/XPCTcpSocket.h>
 #ifdef _WIN32
 #else
@@ -27,7 +28,6 @@
 #endif
 
 #include <string>
-#include <boost/python.hpp>
 
 using namespace boost::python;
 

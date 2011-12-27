@@ -10,10 +10,10 @@ import unittest
 
 sys.path.append("../lib/")
 
-from XPCTcpSocket import *
-from CMOOSMsg  import *
-from CMOOSCommObject import *
-from CMOOSCommPkt import *
+from pymoos.XPCTcpSocket import *
+from pymoos.CMOOSMsg  import *
+from pymoos.CMOOSCommObject import *
+from pymoos.CMOOSCommPkt import *
 
 def MOOSTime():
     

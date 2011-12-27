@@ -98,9 +98,9 @@ file(COPY python/MOOSCommClient.py DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 
 INSTALL(FILES python/MOOSCommClient.py 
 		python/__init__.py 
-		lib/CMOOSCommObject.so 
-		lib/CMOOSCommPkt.so 
-		lib/CMOOSMsg.so 
-		lib/XPCTcpSocket.so
+		${CMAKE_BINARY_DIR}/lib/CMOOSCommObject.so 
+		${CMAKE_BINARY_DIR}/lib/CMOOSCommPkt.so 
+		${CMAKE_BINARY_DIR}/lib/CMOOSMsg.so 
+		${CMAKE_BINARY_DIR}/lib/XPCTcpSocket.so
 	    DESTINATION ${PYTHON_INSTDIR}/pymoos/
 )

@@ -42,4 +42,8 @@ If an import error occurs check that the installation directory (usually /usr/lo
 
 ## Example Usage
 
-Coming soon ...
+The following code snippet creates a MOOS comm client from Python and connects to a database hosted on the local machine.  From a Python3 interpreter, run:
+
+	import pymoos.MOOSCommClient
+	m = pymoos.MOOSCommClient.MOOSApp()
+	m.Run( "127.0.0.1", 9000, "pymoos_test", 10)

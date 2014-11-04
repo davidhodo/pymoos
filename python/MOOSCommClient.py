@@ -45,7 +45,7 @@ class MOOSCommClient( Thread ):
         self.onConnectCallBack = None
         self.onMailCallBack = None
 
-        self.sock = XPCTcpSocket(9000)
+        self.sock = XPCTcpSocket(self.port)
         self.comms = MOOSCommObject()
 
         self.m_Outbox_Lock = RLock()
@@ -122,6 +122,7 @@ class MOOSCommClient( Thread ):
         """
         self.host 	= host 
         self.port 	= port
+        self.sock = XPCTcpSocket(self.port)
         self.m_sMyName 	= myName 
         self.mFundamentalFrequency = fundamentalFreq
         self.daemon 	= True
